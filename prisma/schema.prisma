@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  role          String    @default("EMPLOYEE")
+  managerId     String?
+  manager       User?     @relation("ManagerToEmployee", fields: [managerId], references: [id], onDelete: Cascade)
+  employees     User[]    @relation("ManagerToEmployee")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  logs          Log[]
+  pots          Pot[]
+  items         Item[]
+}
+
+model Item {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  cogs        Float
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  logs        Log[]
+
+  @@index([userId])
+}
+
+model Pot {
+  id        String   @id @default(uuid())
+  name      String
+  capacity  Float
+  weight    Float
+  imgUrl    String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  logs      Log[]
+
+  @@index([userId])
+}
+
+model Log {
+  id        String   @id @default(uuid())
+  weight    Float
+  type      String
+  itemId    String
+  potId     String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  item      Item     @relation(fields: [itemId], references: [id])
+  pot       Pot      @relation(fields: [potId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([itemId])
+  @@index([potId])
+}
